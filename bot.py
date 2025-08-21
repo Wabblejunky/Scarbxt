@@ -38,7 +38,7 @@ def fetch_and_store_lyrics():
 @bot.event
 async def on_ready():
     global all_lyrics
-    print(f"Logged in as {bot.user}")
+    print(f"{bot.user} is online")
 
     if os.path.exists(LYRICS_FILE):
         with open(LYRICS_FILE, "r", encoding="utf-8") as f:
@@ -84,6 +84,53 @@ async def count(ctx, *, word: str):
     word_lower = word.lower()
     total_count = sum(line.lower().count(word_lower) for line in all_lyrics)
 
-    await ctx.send(f"The word '{word}' appears {total_count} times in the Scarlxrd lyrics!")
+    await ctx.send(f"The word '{word}' appears {total_count} times in the roast library!")
+
+
+
+PREDICTIONS_FILE = "predictions.json"
+predictions = []
+
+def load_predictions():
+    global predictions
+    if os.path.exists(PREDICTIONS_FILE):
+        with open(PREDICTIONS_FILE, "r", encoding="utf-8") as f:
+            predictions = json.load(f)
+        print(f"Loaded {len(predictions)} predictions from file.")
+    else:
+        print("⚠️ No predictions.json file found! Make sure it exists.")
+
+@bot.event
+async def on_ready():
+    global all_lyrics
+    print(f"{bot.user} is online")
+
+    # load lyrics
+    if os.path.exists(LYRICS_FILE):
+        with open(LYRICS_FILE, "r", encoding="utf-8") as f:
+            all_lyrics = json.load(f)
+        print(f"Loaded {len(all_lyrics)} lyrics lines from local file.")
+    else:
+        all_lyrics = fetch_and_store_lyrics()
+
+    # load predictions
+    load_predictions()
+
+
+@bot.command()
+async def predict(ctx, *, target: str = None):
+    try:
+        if not predictions:
+            await ctx.send("Predictions are not ready yet. Try again in a few seconds.")
+            return
+
+        if not target:
+            target = ctx.author.mention  # defaults to self
+
+        prophecy = random.choice(predictions)
+        await ctx.send(f"🔮 {target}, {prophecy}")
+    except Exception as e:
+        await ctx.send(f"Error generating prediction: {e}")
+
 
 bot.run(TOKEN)
