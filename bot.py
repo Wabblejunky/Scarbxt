@@ -34,7 +34,6 @@ def fetch_and_store_lyrics():
     print(f"Saved {len(lyrics_list)} lyrics lines locally.")
     return lyrics_list
 
-
 @bot.event
 async def on_ready():
     global all_lyrics
@@ -46,6 +45,11 @@ async def on_ready():
         print(f"Loaded {len(all_lyrics)} lyrics lines from local file.")
     else:
         all_lyrics = fetch_and_store_lyrics()
+
+
+@bot.command()
+async def commands(ctx):
+    await ctx.send("Commands are : ;roast, ;scream, ;count, ;predict. Have Fun!")
 
 
 @bot.command()
@@ -87,9 +91,8 @@ async def count(ctx, *, word: str):
     await ctx.send(f"The word '{word}' appears {total_count} times in the roast library!")
 
 
-
 PREDICTIONS_FILE = "predictions.json"
-predictions = []
+predictions = [] 
 
 def load_predictions():
     global predictions
@@ -98,39 +101,28 @@ def load_predictions():
             predictions = json.load(f)
         print(f"Loaded {len(predictions)} predictions from file.")
     else:
-        print("⚠️ No predictions.json file found! Make sure it exists.")
+        print("No predictions.json file found! Make sure it exists.")
 
-@bot.event
-async def on_ready():
-    global all_lyrics
-    print(f"{bot.user} is online")
+load_predictions()
 
-    # load lyrics
-    if os.path.exists(LYRICS_FILE):
-        with open(LYRICS_FILE, "r", encoding="utf-8") as f:
-            all_lyrics = json.load(f)
-        print(f"Loaded {len(all_lyrics)} lyrics lines from local file.")
-    else:
-        all_lyrics = fetch_and_store_lyrics()
-
-    # load predictions
-    load_predictions()
+print(random.choice(predictions))
 
 
 @bot.command()
-async def predict(ctx, *, target: str = None):
+async def predict(ctx, *, target: str):
     try:
         if not predictions:
             await ctx.send("Predictions are not ready yet. Try again in a few seconds.")
             return
 
         if not target:
-            target = ctx.author.mention  # defaults to self
+            target = ctx.author.mention
 
         prophecy = random.choice(predictions)
-        await ctx.send(f"🔮 {target}, {prophecy}")
+        await ctx.send(f"{target}, {prophecy}")
     except Exception as e:
         await ctx.send(f"Error generating prediction: {e}")
+
 
 
 bot.run(TOKEN)
